@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <Color x:Key="WindowBackgroundColor">#FF14161B</Color>
+    <Color x:Key="PanelBackgroundColor">#FF1C1F27</Color>
+    <Color x:Key="ToolbarBackgroundColor">#FF20242E</Color>
+    <Color x:Key="BorderColor">#FF2E3340</Color>
+    <Color x:Key="TextColor">#FFE7EAF0</Color>
+    <Color x:Key="SubtleTextColor">#FF99A0AE</Color>
+    <Color x:Key="AccentColor">#FF4C8DFF</Color>
+    <Color x:Key="CanvasBackgroundColor">#FF0E0F13</Color>
+
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource PanelBackgroundColor}" />
+    <SolidColorBrush x:Key="ToolbarBackgroundBrush" Color="{StaticResource ToolbarBackgroundColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="SubtleTextBrush" Color="{StaticResource SubtleTextColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="White" />
+    <SolidColorBrush x:Key="CanvasBackgroundBrush" Color="{StaticResource CanvasBackgroundColor}" />
+</ResourceDictionary>

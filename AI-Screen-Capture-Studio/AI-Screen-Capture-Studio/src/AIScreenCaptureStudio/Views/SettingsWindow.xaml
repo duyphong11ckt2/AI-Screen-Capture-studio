@@ -1,0 +1,156 @@
+<Window x:Class="AIScreenCaptureStudio.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings — AI Screen Capture Studio"
+        Width="760" Height="640" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI" FontSize="13">
+    <DockPanel Margin="0">
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource ToolbarBackgroundBrush}" Padding="16,10"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource PrimaryButton}" Content="Save" Command="{Binding SaveCommand}" />
+            </StackPanel>
+        </Border>
+
+        <TabControl Background="Transparent" BorderThickness="0" Margin="12">
+            <!-- General -->
+            <TabItem Header="General">
+                <StackPanel Margin="12">
+                    <TextBlock Text="Default save folder" Margin="0,0,0,4" />
+                    <DockPanel Margin="0,0,0,12">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Browse…"
+                                Command="{Binding BrowseFolderCommand}" Margin="6,0,0,0" />
+                        <TextBox Text="{Binding SaveFolder}" />
+                    </DockPanel>
+
+                    <TextBlock Text="Default export format" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{Binding ExportFormats}" SelectedItem="{Binding ExportFormat}"
+                              Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+
+                    <TextBlock Text="Theme" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}"
+                              Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+
+                    <CheckBox Content="Close to tray instead of exiting" IsChecked="{Binding CloseToTray}" Margin="0,4" />
+                    <CheckBox Content="Start minimized to tray" IsChecked="{Binding StartMinimized}" Margin="0,4" />
+                </StackPanel>
+            </TabItem>
+
+            <!-- Hotkeys -->
+            <TabItem Header="Hotkeys">
+                <StackPanel Margin="12">
+                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,0,0,12"
+                               Text="Global capture hotkeys. Modifier bitmask: Alt=1, Control=2, Shift=4, Win=8 (sum them). Key is a Windows virtual-key code (e.g. S=83, PrintScreen=44)." />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Modifiers" FontWeight="SemiBold" Margin="4" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Key" FontWeight="SemiBold" Margin="4" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Full screen" VerticalAlignment="Center" Margin="4" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Hotkeys.FullScreen.Modifiers}" Margin="4" />
+                        <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Hotkeys.FullScreen.Key}" Margin="4" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Region" VerticalAlignment="Center" Margin="4" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Hotkeys.Region.Modifiers}" Margin="4" />
+                        <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding Hotkeys.Region.Key}" Margin="4" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Active window" VerticalAlignment="Center" Margin="4" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Hotkeys.ActiveWindow.Modifiers}" Margin="4" />
+                        <TextBox Grid.Row="3" Grid.Column="2" Text="{Binding Hotkeys.ActiveWindow.Key}" Margin="4" />
+                    </Grid>
+                </StackPanel>
+            </TabItem>
+
+            <!-- OCR -->
+            <TabItem Header="OCR">
+                <StackPanel Margin="12">
+                    <TextBlock Text="Tessdata folder" Margin="0,0,0,4" />
+                    <DockPanel Margin="0,0,0,12">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Browse…"
+                                Command="{Binding BrowseTessdataCommand}" Margin="6,0,0,0" />
+                        <TextBox Text="{Binding TessdataPath}" />
+                    </DockPanel>
+                    <TextBlock Text="OCR language (e.g. eng, vie)" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding OcrLanguage}" Width="200" HorizontalAlignment="Left" />
+                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,12,0,0"
+                               Text="Place &lt;lang&gt;.traineddata in the tessdata folder. Download from the tesseract-ocr/tessdata_fast GitHub repo." />
+                </StackPanel>
+            </TabItem>
+
+            <!-- AI Settings -->
+            <TabItem Header="AI Settings">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12" DataContext="{Binding AISettings}">
+                        <TextBlock Text="Provider" Margin="0,0,0,4" />
+                        <DockPanel Margin="0,0,0,12">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Use defaults"
+                                    Command="{Binding UseProviderDefaultsCommand}" Margin="6,0,0,0" />
+                            <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding Provider}" />
+                        </DockPanel>
+
+                        <TextBlock Text="Endpoint" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Endpoint}" Margin="0,0,0,12" />
+
+                        <TextBlock Text="Model" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Model}" Margin="0,0,0,12" />
+
+                        <StackPanel Visibility="{Binding RequiresApiKey, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="API key (stored encrypted with Windows DPAPI)" Margin="0,0,0,4" />
+                            <TextBox Text="{Binding ApiKey}" Margin="0,0,0,12" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource SecondaryButton}" Content="Test Connection"
+                                    Command="{Binding TestConnectionCommand}" />
+                            <TextBlock Text="{Binding TestStatus}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Prompts -->
+            <TabItem Header="Prompts">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12" DataContext="{Binding AISettings}">
+                        <DockPanel Margin="0,0,0,4">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Restore default"
+                                    Command="{Binding RestoreGuidelineCommand}" />
+                            <TextBlock Text="Guideline generator" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBox Text="{Binding GuidelinePrompt}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" Margin="0,0,0,14" />
+
+                        <DockPanel Margin="0,0,0,4">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Restore default"
+                                    Command="{Binding RestoreAnnotationCommand}" />
+                            <TextBlock Text="Annotation generator" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBox Text="{Binding AnnotationPrompt}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" Margin="0,0,0,14" />
+
+                        <DockPanel Margin="0,0,0,4">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Restore default"
+                                    Command="{Binding RestoreFunctionCommand}" />
+                            <TextBlock Text="Function detection" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBox Text="{Binding FunctionPrompt}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,14" />
+
+                        <DockPanel Margin="0,0,0,4">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Restore default"
+                                    Command="{Binding RestoreOcrCommand}" />
+                            <TextBlock Text="OCR analyzer" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBox Text="{Binding OcrPrompt}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

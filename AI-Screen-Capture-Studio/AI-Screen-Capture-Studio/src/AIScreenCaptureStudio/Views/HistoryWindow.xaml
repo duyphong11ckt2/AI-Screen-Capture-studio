@@ -1,0 +1,44 @@
+<Window x:Class="AIScreenCaptureStudio.Views.HistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AI History — AI Screen Capture Studio"
+        Width="900" Height="600" WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI" FontSize="13">
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0" Margin="0,0,12,0">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <Button Style="{StaticResource SecondaryButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,6,0" />
+                <Button Style="{StaticResource SecondaryButton}" Content="Delete" Command="{Binding DeleteCommand}" />
+            </StackPanel>
+            <ListBox ItemsSource="{Binding Entries}" SelectedItem="{Binding Selected}"
+                     Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="2,4">
+                            <TextBlock Text="{Binding Provider}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Model}" Foreground="{DynamicResource SubtleTextBrush}" FontSize="11" />
+                            <TextBlock Text="{Binding TimestampUtc, StringFormat=yyyy-MM-dd HH:mm}" Foreground="{DynamicResource SubtleTextBrush}" FontSize="11" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <DockPanel Grid.Column="1">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <Button Style="{StaticResource SecondaryButton}" Content="Copy response" Command="{Binding CopyResponseCommand}" Margin="0,0,6,0" />
+                <Button Style="{StaticResource SecondaryButton}" Content="Export JSON…" Command="{Binding ExportCommand}" />
+            </StackPanel>
+            <Image DockPanel.Dock="Top" Source="{Binding SelectedThumbnail}" Stretch="Uniform" MaxHeight="240" Margin="0,0,0,8" />
+            <TextBox Text="{Binding SelectedResponse}" IsReadOnly="True" AcceptsReturn="True"
+                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                     Background="{DynamicResource PanelBackgroundBrush}" />
+        </DockPanel>
+    </Grid>
+</Window>

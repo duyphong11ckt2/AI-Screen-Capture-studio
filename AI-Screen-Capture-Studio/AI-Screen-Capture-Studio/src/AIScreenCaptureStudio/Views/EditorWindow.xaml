@@ -1,0 +1,264 @@
+<Window x:Class="AIScreenCaptureStudio.Views.EditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:AIScreenCaptureStudio.Converters"
+        xmlns:ann="clr-namespace:AIScreenCaptureStudio.Models.Annotations"
+        Title="Editor — AI Screen Capture Studio"
+        Width="1280" Height="820" WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI" FontSize="13">
+
+    <Window.InputBindings>
+        <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}" />
+        <KeyBinding Key="Y" Modifiers="Control" Command="{Binding RedoCommand}" />
+        <KeyBinding Key="C" Modifiers="Control" Command="{Binding CopyImageCommand}" />
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveAsCommand}" />
+        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <!-- AI/User annotation visual templates, chosen by AnnotationTemplateSelector -->
+        <DataTemplate x:Key="RectTemplate" DataType="{x:Type ann:RectangleAnnotation}">
+            <Grid Width="{Binding Width}" Height="{Binding Height}">
+                <Rectangle Stroke="{Binding StrokeBrush}" StrokeThickness="{Binding StrokeThickness}" RadiusX="3" RadiusY="3" />
+                <Border Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"
+                        BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="HighlightTemplate" DataType="{x:Type ann:HighlightAnnotation}">
+            <Grid Width="{Binding Width}" Height="{Binding Height}">
+                <Rectangle Fill="{Binding FillBrush}" Opacity="{Binding FillOpacity}"
+                           Stroke="{Binding StrokeBrush}" StrokeThickness="1" RadiusX="2" RadiusY="2" />
+                <Border Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"
+                        BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ArrowTemplate" DataType="{x:Type ann:ArrowAnnotation}">
+            <Grid Width="{Binding Width}" Height="{Binding Height}">
+                <Path Stroke="{Binding StrokeBrush}" StrokeThickness="{Binding StrokeThickness}"
+                      Fill="{Binding StrokeBrush}" StrokeEndLineCap="Round" StrokeStartLineCap="Round">
+                    <Path.Data>
+                        <MultiBinding Converter="{StaticResource ArrowGeometry}">
+                            <Binding Path="Width" />
+                            <Binding Path="Height" />
+                        </MultiBinding>
+                    </Path.Data>
+                </Path>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TextTemplate" DataType="{x:Type ann:TextAnnotation}">
+            <Border Background="#CC101216" CornerRadius="4" Padding="6,3"
+                    BorderBrush="{Binding StrokeBrush}" BorderThickness="1">
+                <TextBlock Text="{Binding Text}" Foreground="White" FontSize="{Binding FontSize}" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="StepTemplate" DataType="{x:Type ann:NumberedStepAnnotation}">
+            <Grid Width="{Binding Width}" Height="{Binding Height}">
+                <Ellipse Fill="{Binding StrokeBrush}" />
+                <TextBlock Text="{Binding Number}" Foreground="White" FontWeight="Bold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
+        </DataTemplate>
+
+        <conv:AnnotationTemplateSelector x:Key="AnnSelector"
+            ArrowTemplate="{StaticResource ArrowTemplate}"
+            RectangleTemplate="{StaticResource RectTemplate}"
+            HighlightTemplate="{StaticResource HighlightTemplate}"
+            TextTemplate="{StaticResource TextTemplate}"
+            StepTemplate="{StaticResource StepTemplate}" />
+
+        <Style x:Key="AnnContainer" TargetType="ContentPresenter">
+            <Setter Property="Canvas.Left" Value="{Binding X}" />
+            <Setter Property="Canvas.Top" Value="{Binding Y}" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="{DynamicResource ToolbarBackgroundBrush}" Padding="8,6"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <ToggleButton Style="{StaticResource ToolToggle}" Content="↖" ToolTip="Select"
+                              IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Select}"
+                              Command="{Binding SelectToolCommand}" CommandParameter="Select" />
+                <ToggleButton Style="{StaticResource ToolToggle}" Content="↗" ToolTip="Arrow"
+                              IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Arrow}"
+                              Command="{Binding SelectToolCommand}" CommandParameter="Arrow" />
+                <ToggleButton Style="{StaticResource ToolToggle}" Content="▭" ToolTip="Rectangle"
+                              IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Rectangle}"
+                              Command="{Binding SelectToolCommand}" CommandParameter="Rectangle" />
+                <ToggleButton Style="{StaticResource ToolToggle}" Content="▥" ToolTip="Highlight"
+                              IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Highlight}"
+                              Command="{Binding SelectToolCommand}" CommandParameter="Highlight" />
+                <ToggleButton Style="{StaticResource ToolToggle}" Content="T" ToolTip="Text"
+                              IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Text}"
+                              Command="{Binding SelectToolCommand}" CommandParameter="Text" />
+                <ToggleButton Style="{StaticResource ToolToggle}" Content="①" ToolTip="Numbered step"
+                              IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=NumberedStep}"
+                              Command="{Binding SelectToolCommand}" CommandParameter="NumberedStep" />
+
+                <Separator Margin="8,4" />
+                <Button Style="{StaticResource SecondaryButton}" Content="Undo" Command="{Binding UndoCommand}" Margin="2,0" />
+                <Button Style="{StaticResource SecondaryButton}" Content="Redo" Command="{Binding RedoCommand}" Margin="2,0" />
+                <Button Style="{StaticResource SecondaryButton}" Content="Delete" Command="{Binding DeleteSelectedCommand}" Margin="2,0" />
+                <Separator Margin="8,4" />
+                <Button Style="{StaticResource SecondaryButton}" Content="–" Command="{Binding ZoomOutCommand}" Margin="2,0" Width="32" />
+                <Button Style="{StaticResource SecondaryButton}" Content="Fit" Command="{Binding FitCommand}" Margin="2,0" />
+                <Button Style="{StaticResource SecondaryButton}" Content="+" Command="{Binding ZoomInCommand}" Margin="2,0" Width="32" />
+
+                <Separator Margin="8,4" />
+                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopyImageCommand}" Margin="2,0" />
+                <Button Style="{StaticResource PrimaryButton}" Content="Save As…" Command="{Binding SaveAsCommand}" Margin="2,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- Canvas + right panel -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="340" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          Background="{DynamicResource CanvasBackgroundBrush}">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40">
+                    <Grid.LayoutTransform>
+                        <ScaleTransform ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
+                    </Grid.LayoutTransform>
+                    <Border Effect="{x:Null}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <!-- Flatten root: image + annotation layers only -->
+                            <Grid x:Name="FlattenRoot"
+                                  Width="{Binding ImagePixelWidth}" Height="{Binding ImagePixelHeight}">
+                                <Image Source="{Binding ImageSource}" Stretch="None" SnapsToDevicePixels="True" />
+
+                                <ItemsControl ItemsSource="{Binding AILayer.Annotations}"
+                                              ItemTemplateSelector="{StaticResource AnnSelector}"
+                                              ItemContainerStyle="{StaticResource AnnContainer}"
+                                              Visibility="{Binding AILayer.IsVisible, Converter={StaticResource BoolToVis}}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+
+                                <ItemsControl ItemsSource="{Binding UserLayer.Annotations}"
+                                              ItemTemplateSelector="{StaticResource AnnSelector}"
+                                              ItemContainerStyle="{StaticResource AnnContainer}"
+                                              Visibility="{Binding UserLayer.IsVisible, Converter={StaticResource BoolToVis}}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </Grid>
+
+                            <!-- Interaction layer (not part of the flattened output) -->
+                            <Canvas x:Name="InteractionLayer" Background="#01000000"
+                                    Width="{Binding ImagePixelWidth}" Height="{Binding ImagePixelHeight}"
+                                    MouseLeftButtonDown="Canvas_MouseDown"
+                                    MouseMove="Canvas_MouseMove"
+                                    MouseLeftButtonUp="Canvas_MouseUp" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- Right panel -->
+            <Border Grid.Column="1" Background="{DynamicResource PanelBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="LAYERS" Style="{StaticResource PanelHeader}" />
+                        <ItemsControl ItemsSource="{Binding Layers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource ToolbarBackgroundBrush}" CornerRadius="6" Padding="8,6" Margin="0,0,0,4">
+                                        <DockPanel>
+                                            <CheckBox IsChecked="{Binding IsVisible}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <CheckBox IsChecked="{Binding IsLocked}" Content="🔒" DockPanel.Dock="Right" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Separator Margin="0,12" />
+
+                        <TextBlock Text="AI ASSISTANT" Style="{StaticResource PanelHeader}" />
+                        <Button Style="{StaticResource PrimaryButton}" Content="Generate Guideline"
+                                Command="{Binding GenerateGuidelineCommand}" Margin="0,0,0,6" />
+                        <Button Style="{StaticResource SecondaryButton}" Content="Generate Annotations"
+                                Command="{Binding GenerateAnnotationsCommand}" Margin="0,0,0,6" />
+                        <Button Style="{StaticResource SecondaryButton}" Content="Run OCR"
+                                Command="{Binding RunOcrCommand}" Margin="0,0,0,6" />
+
+                        <!-- Review -->
+                        <Border Visibility="{Binding Review.HasResult, Converter={StaticResource BoolToVis}}"
+                                Background="{DynamicResource ToolbarBackgroundBrush}" CornerRadius="6" Padding="10" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Detected functions" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <ItemsControl ItemsSource="{Binding Review.Functions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel Margin="0,2">
+                                                <Border DockPanel.Dock="Right" CornerRadius="8" Padding="6,1"
+                                                        Background="{Binding Confidence, Converter={StaticResource ConfidenceToBrush}}">
+                                                    <TextBlock Text="{Binding Confidence, Converter={StaticResource ConfidencePercent}}" Foreground="White" FontSize="11" />
+                                                </Border>
+                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="Steps" FontWeight="SemiBold" Margin="0,8,0,4" />
+                                <ItemsControl ItemsSource="{Binding Review.Steps}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Margin="0,2" TextWrapping="Wrap">
+                                                <Run Text="{Binding Step}" FontWeight="Bold" />
+                                                <Run Text=". " />
+                                                <Run Text="{Binding Description}" />
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Accept All" Command="{Binding AcceptAllCommand}" Margin="0,0,6,0" />
+                                    <Button Style="{StaticResource SecondaryButton}" Content="Reject All" Command="{Binding RejectAllCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- OCR -->
+                        <TextBlock Text="OCR TEXT" Style="{StaticResource PanelHeader}" Margin="0,16,0,8" />
+                        <TextBox Text="{Binding OcrText}" AcceptsReturn="True" TextWrapping="Wrap"
+                                 MinHeight="90" VerticalScrollBarVisibility="Auto" IsReadOnly="True" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Background="{DynamicResource ToolbarBackgroundBrush}" Padding="10,5"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding Zoom, StringFormat=Zoom {0:P0}}" Foreground="{DynamicResource SubtleTextBrush}" />
+                <ProgressBar DockPanel.Dock="Right" Width="120" Height="6" IsIndeterminate="True" Margin="0,0,12,0"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+                <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource SubtleTextBrush}" />
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
