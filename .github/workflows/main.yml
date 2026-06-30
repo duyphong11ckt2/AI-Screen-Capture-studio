@@ -1,0 +1,46 @@
+name: Build AI Screen Capture Studio
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore AIScreenCaptureStudio.sln
+
+      - name: Build (Release)
+        run: dotnet build AIScreenCaptureStudio.sln -c Release --no-restore
+
+      - name: Publish (self-contained win-x64)
+        run: >
+          dotnet publish src/AIScreenCaptureStudio/AIScreenCaptureStudio.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=false
+          -o publish
+
+      - name: Download English OCR data (tessdata)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path publish/tessdata | Out-Null
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/eng.traineddata" -OutFile "publish/tessdata/eng.traineddata"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIScreenCaptureStudio-win-x64
+          path: publish
